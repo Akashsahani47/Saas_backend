@@ -1,32 +1,32 @@
-import dotenv, { config } from 'dotenv'
+import dotenv from "dotenv";
 dotenv.config();
 import razorpayInstance from "../config/razorpay.js";
 import { PlanModel } from "../models/Plan.js";
-import crypto, { Verify } from "crypto"
-
-
+import crypto from "crypto";
 
 export const createOrder = async (req, res) => {
   try {
     const { planId } = req.body;
 
     const plan = await PlanModel.findById(planId);
-    if (!plan) return res.status(404).json({ message: "Plan not found" });
+    if (!plan) {
+      return res.status(404).json({ message: "Plan not found", success: false });
+    }
 
-    console.log("Plan Price:", plan.price); 
+    console.log("Plan Price:", plan.price);
 
     const options = {
-      amount: plan.price * 100, 
+      amount: plan.price * 100, // convert to paise
       currency: "INR",
-      receipt: `receipt_${Date.now()}`
+      receipt: `receipt_${Date.now()}`,
     };
 
     const order = await razorpayInstance.orders.create(options);
 
-    res.json({ message: "Done", success: true, order });
+    res.status(201).json({ message: "Order created successfully", success: true, order });
   } catch (error) {
-    console.log(error); 
-    res.status(500).json({ message: error.message });
+    console.log(error);
+    res.status(500).json({ message: error.message, success: false });
   }
 };
 
@@ -44,13 +44,13 @@ export const verifyPayments = async (req, res) => {
     const generatedSignature = hmac.digest("hex");
 
     if (generatedSignature === signature) {
-      return res.json({ message: "Payment Successful", success: true });
+      return res.status(200).json({ message: "Payment Successful", success: true });
     } else {
-      res.json({ message: "Payment Failed", success: false });
+      res.status(400).json({ message: "Payment Failed", success: false });
     }
 
   } catch (error) {
-    console.log(error); 
-    res.status(500).json({ message: error.message });
+    console.log(error);
+    res.status(500).json({ message: error.message, success: false });
   }
 };

@@ -1,11 +1,12 @@
 import { Productmodel } from "../models/Product.js";
 import { PlanModel } from "../models/Plan.js";
+
 export const newProduct = async (req, res) => {
   const { name, description, image, feature } = req.body;
 
   try {
     if (!name || !description || !image) {
-      return res.json({
+      return res.status(400).json({
         message: "Name , Image and description are required",
         success: false,
       });
@@ -13,7 +14,7 @@ export const newProduct = async (req, res) => {
 
     const existingProduct = await Productmodel.findOne({ name });
     if (existingProduct) {
-      return res.json({
+      return res.status(400).json({
         message: "This product already exists",
         success: false,
       });
@@ -26,43 +27,42 @@ export const newProduct = async (req, res) => {
       feature,
     });
 
-    res.json({
+    res.status(201).json({
       message: "New product has been added successfully",
       success: true,
       product,
     });
   } catch (error) {
-    res.json({ message: error.message, success: false });
+    res.status(500).json({ message: error.message, success: false });
   }
 };
 
 
 
-export const getAllProduct = async(req,res)=>{
- try {
-  const product= await Productmodel.find();
-  res.json({message:"All product fetched successfully",success:true,product})
- } catch (error) {
-  res.status.json({message:error.message})
-  
- }
+export const getAllProduct = async (req, res) => {
+  try {
+    const product = await Productmodel.find();
+    res.status(200).json({ message: "All product fetched successfully", success: true, product });
+  } catch (error) {
+    res.status(500).json({ message: error.message, success: false });
+  }
 }
 
 
-export const getProductByID = async(req,res)=>{
-const {id} = req.params;
+export const getProductByID = async (req, res) => {
+  const { id } = req.params;
 
-try {
- const product = await Productmodel.findById(id);
+  try {
+    const product = await Productmodel.findById(id);
 
- if(!product)
-  res.json({message:"Product not found",success:false})
+    if (!product) {
+      return res.status(404).json({ message: "Product not found", success: false });
+    }
 
- res.json({message:"product fetched successfully",success:true,product})
-
-} catch (error) {
- res.status.json({message:error.message})
-}
+    res.status(200).json({ message: "product fetched successfully", success: true, product });
+  } catch (error) {
+    res.status(500).json({ message: error.message, success: false });
+  }
 }
 
 
@@ -79,10 +79,10 @@ export const updateProduct = async (req, res) => {
     );
 
     if (!updatedProduct) {
-      return res.json({ message: "Product not found", success: false });
+      return res.status(404).json({ message: "Product not found", success: false });
     }
 
-    res.json({
+    res.status(200).json({
       message: "Product updated successfully",
       success: true,
       product: updatedProduct,
@@ -101,10 +101,10 @@ export const deleteProduct = async (req, res) => {
     const deleted = await Productmodel.findByIdAndDelete(id);
 
     if (!deleted) {
-      return res.json({ message: "Product not found", success: false });
+      return res.status(404).json({ message: "Product not found", success: false });
     }
 
-    res.json({ message: "Product deleted successfully", success: true });
+    res.status(200).json({ message: "Product deleted successfully", success: true });
   } catch (error) {
     res.status(500).json({ message: error.message, success: false });
   }
@@ -116,7 +116,7 @@ export const addPlan = async (req, res) => {
 
   try {
     const plan = await PlanModel.create({ productId, name, price, features });
-    res.json({ message: "Plan added successfully", success: true, plan });
+    res.status(201).json({ message: "Plan added successfully", success: true, plan });
   } catch (error) {
     res.status(500).json({ message: error.message, success: false });
   }
@@ -128,18 +128,17 @@ export const getPlansByProduct = async (req, res) => {
 
   try {
     const plans = await PlanModel.find({ productId });
-    res.json({ message: "Plans fetched", success: true, plans });
+    res.status(200).json({ message: "Plans fetched", success: true, plans });
   } catch (error) {
     res.status(500).json({ message: error.message, success: false });
   }
 };
 
-export const getAllPlain = async(req,res)=>{
-
- try {
-  const plainProduct = await PlanModel.find().populate("productId","name")
-  res.json({message:"All plans product are fetched",success:true,plainProduct})
- } catch (error) {
-  res.status(500).res.json({message:error.message})
- }
+export const getAllPlain = async (req, res) => {
+  try {
+    const plainProduct = await PlanModel.find().populate("productId", "name");
+    res.status(200).json({ message: "All plans product are fetched", success: true, plainProduct });
+  } catch (error) {
+    res.status(500).json({ message: error.message, success: false });
+  }
 }
